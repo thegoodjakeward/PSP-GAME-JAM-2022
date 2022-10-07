@@ -140,9 +140,6 @@ while true do
 	amg.mode2d(0) --close 2d mode
 	screen.flip()
 	
-	amg.update()
-	model3d.updatephysics()
-	
 	--PAUSING/DYING/QUITTING
 	if BallP.y < -2 then --check for death
 		MovementState.DEAD = 1 
@@ -175,6 +172,8 @@ while true do
 			if buttons.cross then
 				MovementState.PAUSED = 0
 				MovementState.DEAD = 0
+				model3d.position(Ball,1,StartPosition)
+				model3d.setvelocity(Ball,1,{0,0,0})
 				if option == 2 then 
 					amg.mode2d(0) --close 2d mode
 					screen.flip()
@@ -194,4 +193,7 @@ while true do
 		end
 		buttons.interval()
 	end	
+	
+	amg.update()
+	model3d.updatephysics()
 end
