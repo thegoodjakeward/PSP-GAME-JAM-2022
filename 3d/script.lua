@@ -21,8 +21,8 @@ Ramp = model3d.load(files.cdir().."/3d/Data/ramp.obj")
 Bug = {}
 Bug.model = {}
 Bug.rendered = {}
-Bug.glitch = {}
-Bug.position = {}
+Bug.positions = {}
+Bug.glitches = {}
 for a = 1,12 do Bug.model[a] = model3d.load(files.cdir().."/3d/Data/bug.obj") end
 
 model3d.setphysics(Ball,1,{0,0,0},{0,0,0},2,__SPHERE) --second to last input is mass
@@ -49,9 +49,11 @@ BugRotation = 0
 --LEVEL VARIABLES
 Level = 1
 Level1Bugs = {}
-Level1Bugs.rendered = {true,true,true,false,false,false,false,false,false,false,false,false}
+Level1Bugs.rendered = {true,true,true,true,false,false,false,false,false,false,false,false}
 Level1Bugs.positions = {}
-for a = 1,12 do Level1Bugs.positions[a] = {x=-5*a,y=1,z=10} end
+Level1Bugs.positions.x = {40, 40,-40,-40,0,0,0,0,0,0,0,0}
+Level1Bugs.positions.y = { 0,  0,  0,  0,0,0,0,0,0,0,0,0}
+Level1Bugs.positions.z = {40,-40, 40,-40,0,0,0,0,0,0,0,0}
 Level1Bugs.glitches = {"NOCOLLISION","INFINITEJUMP","HIGHSPEED","NOTOP","WALLJUMP","SLOWTIME","REVERSE","HIDDENOBJECT","NOSTOP","STRONGGRAVITY","ICEPHYSICS","DARKMODE"}
 
 --ENUMS
@@ -66,13 +68,18 @@ timer.stop(timer2)
 
 while true do
 	if MovementState.START==1 then
-		for a = 1,12 do 
-			Bug.position[a] = Level1Bugs.positions[a]
-			model3d.position(Bug.model[a],1,{Bug.position[a].x,Bug.position[a].y,Bug.position[a].z}) 
+		if Level==1 then
+			for a = 1,12 do 
+				if Level1Bugs.rendered[a] then
+					Bug.positions = Level1Bugs.positions
+					model3d.position(Bug.model[a],1,{Bug.positions.x[a],Bug.positions.y[a],Bug.positions.z[a]}) 
+				end
+			end
+			Bug.rendered = Level1Bugs.rendered
+			Bug.glitches = Level1Bugs.glitches
+			model3d.position(Ball,1,StartPosition)
+			MovementState.START = 0
 		end
-		model3d.position(Ball,1,StartPosition)
-		MovementState.START = 0
-		Bug.rendered = Level1Bugs.rendered
 	end
 	
 	amg.begin() --begin 3d
@@ -130,10 +137,15 @@ while true do
 	end
 	
 	for a = 1,12 do 
-		model3d.setVelocity(Bug.model[a],1,{2*math.sin(BugRotation),0,2*math.cos(BugRotation)})
-		TempBugP = model3d.getposition(Bug.model[a],1)
-		if math.sqrt(math.pow(TempBugP.x-Bug.position[a].x,2)+math.pow(TempBugP.y-Bug.position[a].y,2)+math.pow(TempBugP.z-Bug.position[a].z,2)) > 5 then
-			
+		if Bug.rendered[a] then
+			TempBugP = model3d.getposition(Bug.model[a],1)
+			if math.sqrt(((TempBugP.x+0.04*math.sin(BugRotation)-Bug.positions.x[a])^2)+((TempBugP.z+0.04*math.cos(BugRotation)-Bug.positions.z[a])^2)) > 2 then
+				BugRotation += math.random(1,13)*2*math.pi/13
+			end
+			if math.sqrt(((TempBugP.x+0.04*math.sin(BugRotation)-Bug.positions.x[a])^2)+((TempBugP.z+0.04*math.cos(BugRotation)-Bug.positions.z[a])^2)) < 2 then
+				model3d.position(Bug.model[a],1,{TempBugP.x+0.04*math.sin(BugRotation),0,TempBugP.z+0.04*math.cos(BugRotation)})	
+				model3d.rotation(Bug.model[a],1,{0,BugRotation,0})
+			end
 		end
 	end
 
@@ -150,7 +162,8 @@ while true do
 	if buttons.circle then
 		for a = 1,12 do 
 			if Bug.rendered[a] then
-				if math.sqrt(math.pow(BallP.x-Bug.position[a].x,2)+math.pow(BallP.y-Bug.position[a].y,2)+math.pow(BallP.z-Bug.position[a].z,2)) < 10 then
+				TempBugP = model3d.getposition(Bug.model[a],1)
+				if math.sqrt(((BallP.x-TempBugP.x)^2)+((BallP.y-TempBugP.y)^2)+((BallP.z-TempBugP.z)^2)) < 10 then
 					Bug.rendered[a] = false
 				end
 			end
@@ -173,14 +186,14 @@ while true do
 
 	--temporarily enable 2d mode to print debug variables
 	amg.mode2d(1)
-	screen.print(15,168,"Time "..timer.time(timer1)/1000)
-	screen.print(15,180,"Time2 "..timer.time(timer2)/1000)
-	screen.print(15,192,"FPS "..screen.fps())
-	screen.print(15,204,"INFINITEJUMP"..GlitchState.INFINITEJUMP)
-	screen.print(15,216,"Speed "..math.sqrt(BallV.x*BallV.x + BallV.z*BallV.z))
-	screen.print(15,228,"How Close "..math.sqrt(math.pow(BallP.x-Bug.position[1].x,2)+math.pow(BallP.y-Bug.position[1].y,2)+math.pow(BallP.z-Bug.position[1].z,2)))
-	screen.print(15,240,"Running? "..MovementState.RUNNING)
-	screen.print(15,252,"Idle? "..MovementState.IDLE)
+	screen.print(15,168,"BallP.x"..BallP.x)
+	screen.print(15,180,"BallP.z"..BallP.z)
+	screen.print(15,192,"temp: ")
+	screen.print(15,204,"BugRotation")
+	screen.print(15,216,"temp2: ")
+	screen.print(15,228,"How Close ")
+	screen.print(15,240,"TempBugP.x ")
+	screen.print(15,252,"TempBugP.z")
 	
 	amg.mode2d(0) --close 2d mode
 	screen.flip()
