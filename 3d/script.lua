@@ -37,6 +37,10 @@ model3d.setdamping(Ball,1,0.4,1000000) --sets linear and rotational damping
 StartPosition = {-2,6,0}
 
 blackscreen = image.load(files.cdir().."/3d/blackscreen.png")
+level1backgroundNorth = image.load(files.cdir().."/3d/Level1BackgroundNorth.png")
+level1backgroundSouth = image.load(files.cdir().."/3d/Level1BackgroundSouth.png")
+level1backgroundEast = image.load(files.cdir().."/3d/Level1BackgroundEast.png")
+level1backgroundWest = image.load(files.cdir().."/3d/Level1BackgroundWest.png")
 
 
 --VARIABLES
@@ -139,12 +143,12 @@ while true do
 	for a = 1,12 do 
 		if Bug.rendered[a] then
 			TempBugP = model3d.getposition(Bug.model[a],1)
-			if math.sqrt(((TempBugP.x+0.04*math.sin(BugRotation)-Bug.positions.x[a])^2)+((TempBugP.z+0.04*math.cos(BugRotation)-Bug.positions.z[a])^2)) > 2 then
-				BugRotation += math.random(1,13)*2*math.pi/13
+			if math.sqrt(((TempBugP.x+0.06*math.sin(BugRotation)-Bug.positions.x[a])^2)+((TempBugP.z+0.06*math.cos(BugRotation)-Bug.positions.z[a])^2)) > 2 then
+				BugRotation += math.pi/1.5
 			end
-			if math.sqrt(((TempBugP.x+0.04*math.sin(BugRotation)-Bug.positions.x[a])^2)+((TempBugP.z+0.04*math.cos(BugRotation)-Bug.positions.z[a])^2)) < 2 then
+			if math.sqrt(((TempBugP.x+0.06*math.sin(BugRotation)-Bug.positions.x[a])^2)+((TempBugP.z+0.06*math.cos(BugRotation)-Bug.positions.z[a])^2)) < 2 then
 				model3d.position(Bug.model[a],1,{TempBugP.x+0.04*math.sin(BugRotation),0,TempBugP.z+0.04*math.cos(BugRotation)})	
-				model3d.rotation(Bug.model[a],1,{0,BugRotation,0})
+				model3d.rotation(Bug.model[a],1,{0,BugRotation*180/math.pi,0})
 			end
 		end
 	end
@@ -169,6 +173,19 @@ while true do
 			end
 		end
 	end
+	
+	amg.mode2d(1)
+	if Rotation < math.pi/2 then
+		level1backgroundNorth:blit(Rotation/(math.pi/2)*480,0) end
+	if Rotation < math.pi then
+		level1backgroundWest:blit((Rotation-math.pi/2)/(math.pi/2)*480,0) end
+	if Rotation < 3*math.pi/2 and Rotation >= math.pi/2 then
+		level1backgroundSouth:blit((Rotation-math.pi)/(math.pi/2)*480,0) end
+	if Rotation < 2*math.pi and Rotation >= math.pi then
+		level1backgroundEast:blit((Rotation-3*math.pi/2)/(math.pi/2)*480,0) end
+	if Rotation >= 3*math.pi/2 then
+		level1backgroundNorth:blit((Rotation-2*math.pi)/(math.pi/2)*480,0) end
+	amg.mode2d(0)
 
 	--set camara
 	cam3d.set(camera1)
@@ -189,7 +206,7 @@ while true do
 	screen.print(15,168,"BallP.x"..BallP.x)
 	screen.print(15,180,"BallP.z"..BallP.z)
 	screen.print(15,192,"temp: ")
-	screen.print(15,204,"BugRotation")
+	screen.print(15,204,"Rotation"..Rotation)
 	screen.print(15,216,"temp2: ")
 	screen.print(15,228,"How Close ")
 	screen.print(15,240,"TempBugP.x ")
