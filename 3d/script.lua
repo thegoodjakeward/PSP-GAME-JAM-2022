@@ -42,6 +42,11 @@ level1backgroundNorth = image.load(files.cdir().."/3d/Level1BackgroundNorth.png"
 level1backgroundSouth = image.load(files.cdir().."/3d/Level1BackgroundSouth.png")
 level1backgroundEast = image.load(files.cdir().."/3d/Level1BackgroundEast.png")
 level1backgroundWest = image.load(files.cdir().."/3d/Level1BackgroundWest.png")
+HUD = image.load(files.cdir().."/3d/HUD.png")
+HUD1 = image.load(files.cdir().."/3d/HUD1_4.png")
+HUD2 = image.load(files.cdir().."/3d/HUD2_4.png")
+HUD3 = image.load(files.cdir().."/3d/HUD3_4.png")
+HUD4 = image.load(files.cdir().."/3d/HUD4_4.png")
 
 
 --VARIABLES
@@ -88,6 +93,7 @@ while true do
 			Bug.glitches = Level1Bugs.glitches
 			model3d.position(Ball,1,StartPosition)
 			MovementState.START = 0
+			BugsLeft = 4
 		end
 	end
 	
@@ -162,7 +168,7 @@ while true do
 	--net position
 	model3d.rotation(Net,1,{180,360 - Rotation*180/(math.pi),0}) --change net's rotation
 	model3d.position(Net,1,{BallP.x+NetForwardOffset*SinSign*math.sin(RotationForCalc)-NetSideOffset*CosSign*math.cos(RotationForCalc),BallP.y+NetVerticalOffset,BallP.z+NetForwardOffset*CosSign*math.cos(RotationForCalc)+NetSideOffset*SinSign*math.sin(RotationForCalc)})
-
+	
 	--apply movement if buttons are pressed
 	buttons.read()
 	if buttons.held.up then model3d.setvelocity(Ball,1,{BallV.x+0.5*SinSign*math.sin(RotationForCalc),BallV.y,BallV.z+0.5*CosSign*math.cos(RotationForCalc)}) end
@@ -179,6 +185,9 @@ while true do
 				TempBugP = model3d.getposition(Bug.model[a],1)
 				if math.sqrt(((BallP.x-TempBugP.x)^2)+((BallP.y-TempBugP.y)^2)+((BallP.z-TempBugP.z)^2)) < 12.5 then
 					Bug.rendered[a] = false
+					timer.reset(timer2)
+					timer.start(timer2)
+					BugsLeft -= 1
 				end
 			end
 		end
@@ -222,8 +231,28 @@ while true do
 	--screen.print(15,204,"Rotation"..Rotation)
 	--screen.print(15,216,"temp2: ")
 	--screen.print(15,228,"How Close ")
-	--screen.print(15,240,"TempBugP.x ")
+	screen.print(15,240,"Powerup Timer: "..timer.time(timer2))
 	screen.print(15,252,"FPS: "..screen.fps())
+	
+	--powerup timer
+	if timer.time(timer2)/1000 > 0 then
+		if timer.time(timer2)/1000 < 1.25 then
+			HUD4:blit(0,0,255)
+		elseif timer.time(timer2)/1000 < 2.5 then
+			HUD3:blit(0,0,255)
+		elseif timer.time(timer2)/1000 < 3.75 then
+			HUD2:blit(0,0,255)
+		elseif timer.time(timer2)/1000 < 5 then
+			HUD1:blit(0,0,255)
+		elseif timer.time(timer2)/1000 > 5 then
+			timer.reset(timer2)
+			timer.stop(timer2)
+			HUD:blit(0,0,255)
+		end
+	else HUD:blit(0,0,255) end
+	
+	screen.print(80,22,120-math.ceil(timer.time(timer1)/1000))
+	screen.print(438,22,BugsLeft)
 	
 	amg.mode2d(0) --close 2d mode
 	screen.flip()
