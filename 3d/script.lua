@@ -17,7 +17,8 @@ amg.poslight(1,{0.5,1,0.5})
 --LOADING
 Ball = model3d.load(files.cdir().."/3d/Data/ball.obj")
 Water = model3d.load(files.cdir().."/3d/Data/plane.obj")
-Ramp = model3d.load(files.cdir().."/3d/Data/ramp.obj")
+--Ramp = model3d.load(files.cdir().."/3d/Data/ramp.obj")
+Net = model3d.load(files.cdir().."/3d/Data/net.obj")
 Bug = {}
 Bug.model = {}
 Bug.rendered = {}
@@ -27,11 +28,11 @@ for a = 1,12 do Bug.model[a] = model3d.load(files.cdir().."/3d/Data/bug.obj") en
 
 model3d.setphysics(Ball,1,{0,0,0},{0,0,0},2,__SPHERE) --second to last input is mass
 model3d.setphysics(Water,1,{0,0,0},{0,0,0},0,__BOX) --zero mass indicates immovable
-model3d.setphysics(Ramp,1,{0,0,0},{0,0,0},0,__CONVEX)
+--model3d.setphysics(Ramp,1,{0,0,0},{0,0,0},0,__CONVEX)
 
 model3d.physics(Ball)
 model3d.physics(Water)
-model3d.physics(Ramp)
+--model3d.physics(Ramp)
 
 model3d.setdamping(Ball,1,0.4,1000000) --sets linear and rotational damping
 StartPosition = {-2,6,0}
@@ -49,6 +50,9 @@ RotationForCalc = 0; --camera's rotation converted to corresponding quadrant for
 SinSign = 0; --used in quadrant calcs
 CosSign = 0; --used in quadrant calcs
 BugRotation = 0
+NetForwardOffset = 4
+NetSideOffset = 1
+NetVerticalOffset = 2
 
 --LEVEL VARIABLES
 Level = 1
@@ -71,6 +75,7 @@ timer2 = timer.new()
 timer.stop(timer2)
 
 while true do
+	--level initialization stuff
 	if MovementState.START==1 then
 		if Level==1 then
 			for a = 1,12 do 
@@ -140,6 +145,7 @@ while true do
 		BallV.x = BallV.x*0.97
 	end
 	
+	--bug movement
 	for a = 1,12 do 
 		if Bug.rendered[a] then
 			TempBugP = model3d.getposition(Bug.model[a],1)
@@ -152,6 +158,10 @@ while true do
 			end
 		end
 	end
+	
+	--net position
+	model3d.rotation(Net,1,{180,360 - Rotation*180/(math.pi),0}) --change net's rotation
+	model3d.position(Net,1,{BallP.x+NetForwardOffset*SinSign*math.sin(RotationForCalc)-NetSideOffset*CosSign*math.cos(RotationForCalc),BallP.y+NetVerticalOffset,BallP.z+NetForwardOffset*CosSign*math.cos(RotationForCalc)+NetSideOffset*SinSign*math.sin(RotationForCalc)})
 
 	--apply movement if buttons are pressed
 	buttons.read()
@@ -167,13 +177,14 @@ while true do
 		for a = 1,12 do 
 			if Bug.rendered[a] then
 				TempBugP = model3d.getposition(Bug.model[a],1)
-				if math.sqrt(((BallP.x-TempBugP.x)^2)+((BallP.y-TempBugP.y)^2)+((BallP.z-TempBugP.z)^2)) < 10 then
+				if math.sqrt(((BallP.x-TempBugP.x)^2)+((BallP.y-TempBugP.y)^2)+((BallP.z-TempBugP.z)^2)) < 12.5 then
 					Bug.rendered[a] = false
 				end
 			end
 		end
 	end
 	
+	--background image code, there's one 480x272 image for each cardinal direction
 	amg.mode2d(1)
 	if Rotation < math.pi/2 then
 		level1backgroundNorth:blit(Rotation/(math.pi/2)*480,0) end
@@ -192,25 +203,27 @@ while true do
 
 	amg.light(1,1);--activate light before rendering objects
 
-	model3d.render(Ramp)
+	--model3d.render(Ramp)
 	model3d.render(Water)
 	for a=1,12 do 
 		if Bug.rendered[a] then model3d.render(Bug.model[a]) end
 	end
+	model3d.render(Net)
+	--model3d.blitshadow(Net,1,1,100,1)
 	model3d.blitshadow(Ball,1,1,100,1)
 
 	amg.light(1,0);--disable light after rendering objects
 
 	--temporarily enable 2d mode to print debug variables
 	amg.mode2d(1)
-	screen.print(15,168,"BallP.x"..BallP.x)
-	screen.print(15,180,"BallP.z"..BallP.z)
-	screen.print(15,192,"temp: ")
-	screen.print(15,204,"Rotation"..Rotation)
-	screen.print(15,216,"temp2: ")
-	screen.print(15,228,"How Close ")
-	screen.print(15,240,"TempBugP.x ")
-	screen.print(15,252,"TempBugP.z")
+	--screen.print(15,168,"BallP.x"..BallP.x)
+	--screen.print(15,180,"BallP.z"..BallP.z)
+	--screen.print(15,192,"temp: ")
+	--screen.print(15,204,"Rotation"..Rotation)
+	--screen.print(15,216,"temp2: ")
+	--screen.print(15,228,"How Close ")
+	--screen.print(15,240,"TempBugP.x ")
+	screen.print(15,252,"FPS: "..screen.fps())
 	
 	amg.mode2d(0) --close 2d mode
 	screen.flip()
