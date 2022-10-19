@@ -16,8 +16,8 @@ amg.poslight(1,{0.5,1,0.5})
 
 --LOADING
 Ball = model3d.load(files.cdir().."/3d/Data/ball.obj")
-Water = model3d.load(files.cdir().."/3d/Data/plane.obj")
---Ramp = model3d.load(files.cdir().."/3d/Data/ramp.obj")
+--Water = model3d.load(files.cdir().."/3d/Data/plane.obj")
+Ramp = model3d.load(files.cdir().."/3d/Data/leve1.obj")
 Net = model3d.load(files.cdir().."/3d/Data/net.obj")
 Bug = {}
 Bug.model = {}
@@ -27,15 +27,17 @@ Bug.glitches = {}
 for a = 1,12 do Bug.model[a] = model3d.load(files.cdir().."/3d/Data/bug.obj") end
 
 model3d.setphysics(Ball,1,{0,0,0},{0,0,0},2,__SPHERE) --second to last input is mass
-model3d.setphysics(Water,1,{0,0,0},{0,0,0},0,__BOX) --zero mass indicates immovable
---model3d.setphysics(Ramp,1,{0,0,0},{0,0,0},0,__CONVEX)
+--model3d.setphysics(Net,1,{0,0,0},{0,0,0},0,__BOX)
+--model3d.setphysics(Water,1,{0,0,0},{0,0,0},0,__BOX) --zero mass indicates immovable
+model3d.setphysics(Ramp,1,{0,0,0},{0,0,0},0,__CONVEX)
 
 model3d.physics(Ball)
-model3d.physics(Water)
---model3d.physics(Ramp)
+--model3d.physics(Net)
+--model3d.physics(Water)
+model3d.physics(Ramp)
 
 model3d.setdamping(Ball,1,0.4,1000000) --sets linear and rotational damping
-StartPosition = {-2,6,0}
+StartPosition = {0,50,0}
 
 blackscreen = image.load(files.cdir().."/3d/blackscreen.png")
 level1backgroundNorth = image.load(files.cdir().."/3d/Level1BackgroundNorth.png")
@@ -58,6 +60,7 @@ BugRotation = 0
 NetForwardOffset = 4
 NetSideOffset = 1
 NetVerticalOffset = 2
+CameraYAdjustment = 0
 
 --LEVEL VARIABLES
 Level = 1
@@ -109,7 +112,7 @@ while true do
 	elseif BugRotation < 0 then BugRotation = 2*math.pi end
 	
 	cam3d.position(camera1,{BallP.x,BallP.y+3,BallP.z}) --set camera to players position
-	cam3d.eye(camera1,{10*math.sin(Rotation)+BallP.x,BallP.y+3,10*math.cos(Rotation)+BallP.z}) --set camera's looking direction
+	cam3d.eye(camera1,{10*math.sin(Rotation)+BallP.x,BallP.y+3+CameraYAdjustment,10*math.cos(Rotation)+BallP.z}) --set camera's looking direction
 	
 	--calculate rotation angle for movement calculations based on quadrant
 	if Rotation < math.pi/2 then 
@@ -144,6 +147,8 @@ while true do
 	else
 		MovementState.FALLING = 0
 	end
+	--if MovementState.FALLING == 0 then CameraYAdjustment = CameraYAdjustment/1.08
+	--elseif CameraYAdjustment > -2 then CameraYAdjustment += -0.05 end
 	
 	--enforce top speed
 	if MovementState.RUNNING==1 and (BallV.x*BallV.x + BallV.z*BallV.z) > 400  then 
@@ -212,8 +217,8 @@ while true do
 
 	amg.light(1,1);--activate light before rendering objects
 
-	--model3d.render(Ramp)
-	model3d.render(Water)
+	model3d.render(Ramp)
+	--model3d.render(Water)
 	for a=1,12 do 
 		if Bug.rendered[a] then model3d.render(Bug.model[a]) end
 	end
@@ -231,7 +236,8 @@ while true do
 	--screen.print(15,204,"Rotation"..Rotation)
 	--screen.print(15,216,"temp2: ")
 	--screen.print(15,228,"How Close ")
-	screen.print(15,240,"Powerup Timer: "..timer.time(timer2))
+	--timer.time(timer2)
+	screen.print(15,240,"CameraYAdjustment "..CameraYAdjustment)
 	screen.print(15,252,"FPS: "..screen.fps())
 	
 	--powerup timer
@@ -251,11 +257,16 @@ while true do
 		end
 	else HUD:blit(0,0,255) end
 	
-	screen.print(80,22,120-math.ceil(timer.time(timer1)/1000))
+	screen.print(80,22,math.ceil(120-timer.time(timer1)/1000))
 	screen.print(438,22,BugsLeft)
 	
 	amg.mode2d(0) --close 2d mode
 	screen.flip()
+	
+	if math.ceil(120-timer.time(timer1)/1000) == 0 then
+		MovementState.DEAD = 1
+		MovementState.PAUSED = 1
+	end
 	
 	--PAUSING/DYING/QUITTING
 	if BallP.y < -2 then --check for death
@@ -291,6 +302,8 @@ while true do
 				if MovementState.DEAD == 1 then
 					model3d.position(Ball,1,StartPosition)
 					model3d.setvelocity(Ball,1,{0,0,0})
+					timer.reset(timer1)
+					timer.start(timer1)
 				end
 				MovementState.DEAD = 0
 				if option == 2 then 
