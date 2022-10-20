@@ -57,9 +57,9 @@ RotationForCalc = 0; --camera's rotation converted to corresponding quadrant for
 SinSign = 0; --used in quadrant calcs
 CosSign = 0; --used in quadrant calcs
 BugRotation = 0
-NetForwardOffset = 4
+NetForwardOffset = 3.5
 NetSideOffset = 1
-NetVerticalOffset = 2
+NetVerticalOffset = 0
 CameraYAdjustment = 0
 
 --LEVEL VARIABLES
@@ -111,8 +111,8 @@ while true do
 	if BugRotation > 2*math.pi then BugRotation = 0 
 	elseif BugRotation < 0 then BugRotation = 2*math.pi end
 	
-	cam3d.position(camera1,{BallP.x,BallP.y+3,BallP.z}) --set camera to players position
-	cam3d.eye(camera1,{10*math.sin(Rotation)+BallP.x,BallP.y+3+CameraYAdjustment,10*math.cos(Rotation)+BallP.z}) --set camera's looking direction
+	cam3d.position(camera1,{BallP.x,BallP.y+0.5,BallP.z}) --set camera to players position
+	cam3d.eye(camera1,{10*math.sin(Rotation)+BallP.x,BallP.y+0.5+CameraYAdjustment,10*math.cos(Rotation)+BallP.z}) --set camera's looking direction
 	
 	--calculate rotation angle for movement calculations based on quadrant
 	if Rotation < math.pi/2 then 
@@ -180,11 +180,13 @@ while true do
 	if buttons.held.down then model3d.setvelocity(Ball,1,{BallV.x-0.5*SinSign*math.sin(RotationForCalc),BallV.y,BallV.z-0.5*CosSign*math.cos(RotationForCalc)}) end
 	if buttons.held.left then model3d.setvelocity(Ball,1,{BallV.x+0.5*CosSign*math.cos(RotationForCalc),BallV.y,BallV.z-0.5*SinSign*math.sin(RotationForCalc)}) end
 	if buttons.held.right then model3d.setvelocity(Ball,1,{BallV.x-0.5*CosSign*math.cos(RotationForCalc),BallV.y,BallV.z+0.5*SinSign*math.sin(RotationForCalc)}) end
-	if buttons.cross and MovementState.FALLING==0 then model3d.setvelocity(Ball,1,{BallV.x,15,BallV.z}) end --jump
+	if buttons.cross and MovementState.FALLING==0 then model3d.setvelocity(Ball,1,{BallV.x,16,BallV.z}) end --jump
 	if buttons.held.l then Rotation += 0.0300630876 end
 	if buttons.held.r then Rotation -= 0.0300630876 end
 	if buttons.start then MovementState.PAUSED = 1 end
-	if buttons.circle then
+	if buttons.circle and NetSwing == false then
+		NetSwing = true
+		NetSwingDown = true
 		for a = 1,12 do 
 			if Bug.rendered[a] then
 				TempBugP = model3d.getposition(Bug.model[a],1)
@@ -197,6 +199,16 @@ while true do
 			end
 		end
 	end
+	if NetSwing then 
+		if NetVerticalOffset > -1.5 and NetSwingDown then NetVerticalOffset -= 0.5
+		else 
+			NetSwingDown = false
+			if NetVerticalOffset < 0 then NetVerticalOffset += 0.1 
+			else NetSwing = false end
+		end
+	end
+	
+		
 	
 	--background image code, there's one 480x272 image for each cardinal direction
 	amg.mode2d(1)
@@ -217,10 +229,10 @@ while true do
 
 	amg.light(1,1);--activate light before rendering objects
 
-	model3d.render(Ramp)
+	model3d.render(Ramp,2)
 	--model3d.render(Water)
 	for a=1,12 do 
-		if Bug.rendered[a] then model3d.render(Bug.model[a]) end
+		if Bug.rendered[a] then model3d.render(Bug.model[a],2) end
 	end
 	model3d.render(Net)
 	--model3d.blitshadow(Net,1,1,100,1)
