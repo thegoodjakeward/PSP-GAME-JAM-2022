@@ -16,7 +16,7 @@ buttons.interval(40,10)
 BackgroundShift = 0
 Enter = 0
 
-sound.play(titlesong)
+--sound.play(titlesong)
 
 while true do
 buttons.read()
