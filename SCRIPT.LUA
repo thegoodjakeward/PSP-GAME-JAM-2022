@@ -8,17 +8,22 @@ img3=image.load("BugginOutLogo.png")
 img4=image.load("MainMenuForeground.png")
 img5=image.load("MainMenuForegroundFlipped.png")
 
-titlesong = sound.load("Buggin' Out.mp3")
+titlesong = sound.load("Buggin' Out 2 Intro.mp3")
+titlesongloop = sound.load("Buggin' Out 2 Loop.mp3")
 
 option = 1
 buttons.interval(40,10)
 
 BackgroundShift = 0
-Enter = 0
+Credits = 0
 
---sound.play(titlesong)
+sound.play(titlesong)
 
 while true do
+if sound.endstream(titlesong) then
+	if not sound.playing(titlesongloop) then
+		sound.play(titlesongloop) end
+end
 buttons.read()
 
 if BackgroundShift < 240 then
@@ -59,38 +64,45 @@ end
 --else img3:blit(0,0) end
 img3:blit(0,0)
 
-if option == 1 then screen.print(240,186,"Start Game",0.8,color.white,color.green,__ACENTER)
-else screen.print(240,185,"Start Game",0.6,color.white,0,__ACENTER)
-end
+if Credits == 0 then
+	if option == 1 then screen.print(240,196,"Start Game",0.8,color.white,color.green,__ACENTER)
+	else screen.print(240,195,"Start Game",0.6,color.white,0,__ACENTER)
+	end
 
-if option == 2 then screen.print(240,201,"Options",0.8,color.white,color.green,__ACENTER)
-else screen.print(240,200,"Options",0.6,color.white,0,__ACENTER)
+	if option == 2 then screen.print(240,211,"Credits",0.8,color.white,color.green,__ACENTER)
+	else screen.print(240,210,"Credits",0.6,color.white,0,__ACENTER)
+	end
 end
-
-if option == 3 then screen.print(240,216,"High Scores",0.8,color.white,color.green,__ACENTER)
-else screen.print(240,215,"High Scores",0.6,color.white,0,__ACENTER)
-end
-
-if option == 4 then screen.print(240,231,"Credits",0.8,color.white,color.green,__ACENTER)
-else screen.print(240,230,"Credits",0.6,color.white,0,__ACENTER)
-end
-
 
 if buttons.down then option += 1
 elseif buttons.up then option -= 1
 end
 
-if option < 1 then option = 4
-elseif option > 4 then option = 1
+if option < 1 then option = 2
+elseif option > 2 then option = 1
+end
+
+if Credits == 1 then
+	screen.print(240,180,"Programming and Music: thegoodjakeward",0.8,color.white,color.green,__ACENTER)
+	screen.print(240,195,"3D Modeling: Cobra!",0.8,color.white,color.green,__ACENTER)
+	screen.print(240,210,"SFX & Playtesting: graveash",0.8,color.white,color.green,__ACENTER)
+	screen.print(240,240,"Press o to return to Main Menu",0.6,color.white,color.green,__ACENTER)
 end
 
 if buttons.cross then
-    if option == 1 then dofile("3d/script.lua")
-    elseif option == 2 then dofile("3d/script.lua")
-    elseif option == 3 then dofile("3d/script.lua")
-    elseif option == 4 then dofile("3d/script.lua")
+    if option == 1 then 
+		if sound.playing(titlesong) then sound.stop(titlesong) end
+		if sound.playing(titlesongloop) then sound.stop(titlesongloop) end
+		dofile("3d/script.lua")
     end
+	if option == 2 then
+		Credits = 1
+	end
 end
+if buttons.circle then
+	Credits = 0
+end
+
 
 screen.flip()
 end
